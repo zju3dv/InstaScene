@@ -3,7 +3,7 @@
 ### [Project Page](https://zju3dv.github.io/instascene) | [Paper](https://arxiv.org/abs/2507.08416) | [Arxiv](https://arxiv.org/abs/2507.08416) | [Video](https://www.youtube.com/watch?v=PUb4l_Ttf3I)
 
 > [InstaScene: Towards Complete 3D Instance Decomposition and Reconstruction from Cluttered Scenes](https://zju3dv.github.io/instascene),  
-> Zesong Yang, Bangbang Yang, Wenqi Dong, Chenxuan Cao, Liyuan Cui, Yuewen Ma, Zhaopeng Cui, Hujun Bao,  
+> Zesong Yang, Bangbang Yang, Wenqi Dong, Chenxuan Cao, Liyuan Cui, Yuewen Ma, Zhaopeng Cui, Hujun Bao
 > ICCV 2025
 
 
