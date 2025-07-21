@@ -1,0 +1,17 @@
+.vscode/
+.idea/
+.DS_Store
+*.pyc
+.vscode
+output
+build
+data
+*.ply
+**/PKG-INFO
+**__pycache__**
+*.out
+eval
+*.npz
+**/tmp
+.chat/
+.idea
