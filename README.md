@@ -15,7 +15,7 @@ https://github.com/user-attachments/assets/3837634c-4ef9-4078-87ab-68a1c3e4faf9
 ## Todos
 
 - [x] Release project page and paper.
-- [ ] Release scene decomposition code.
+- [ ] Release scene decomposition code (by the end of July).
 - [ ] Release in-situ generation code.
 
 
