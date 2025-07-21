@@ -137,10 +137,6 @@ if __name__ == "__main__":
 
     for path in tqdm(image_list):
         # use PIL, to be consistent with evaluation
-        save_vis_file = os.path.join(output_vis_dir, os.path.basename(path).split('.')[0] + '.png')
-        save_seg_file = os.path.join(output_seg_dir, os.path.basename(path).split('.')[0] + '.npz')
-        if os.path.exists(save_seg_file):
-            continue
         img = read_image(path, format="BGR")
         predictions = demo.run_on_image(img)
 
@@ -152,10 +148,25 @@ if __name__ == "__main__":
         selected_indexes = (pred_scores >= args.confidence_threshold)
         selected_scores = pred_scores[selected_indexes]
         selected_masks = pred_masks[selected_indexes].cpu().numpy() > 0
-        # print(selected_masks)
 
+        _, m_H, m_W = selected_masks.shape
+        mask_image = np.zeros((m_H, m_W), dtype=np.uint8)
+
+        # rank
+        mask_id = 1
+        selected_scores, ranks = torch.sort(selected_scores)
+        for index in ranks:
+            num_pixels = torch.sum(selected_masks[index])
+            if num_pixels < 400:
+                # ignore small masks
+                continue
+            mask_image[(selected_masks[index] == 1).cpu().numpy()] = mask_id
+            mask_id += 1
+        cv2.imwrite(os.path.join(output_seg_dir, os.path.basename(path).split('.')[0] + '.png'), mask_image)
+
+
+
+        save_vis_file = os.path.join(output_vis_dir, os.path.basename(path).split('.')[0] + '.png')
         masks = selected_masks[selected_masks.sum((1, 2)).argsort()]  # 按照mask数量进行排序
-
         img = read_image(path, format="RGB")
         Image.fromarray(vis_mask(img, masks)).save(save_vis_file)
-        np.savez_compressed(save_seg_file, masks)

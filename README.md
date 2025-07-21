@@ -16,10 +16,12 @@ https://github.com/user-attachments/assets/3837634c-4ef9-4078-87ab-68a1c3e4faf9
 conda create -n instascene python=3.9 -y
 conda activate instascene 
 
-pip install torch==2.0.0+cu118 torchvision==0.15.0+cu118 torchaudio==2.0.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
+pip install torch==2.1.0+cu118 torchvision==0.16.0+cu118 torchaudio==2.1.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
 
 pip install -r requirements.txt
 ```
+Refer to [here](https://github.com/ashawkey/cubvh?tab=readme-ov-file#trouble-shooting) If failed with `raytracing`.
+
 
 Install [`CropFormer`](https://github.com/qqlu/Entity/tree/main/Entityv2/CropFormer) for instance-level segmentation.
 ```shell
@@ -54,7 +56,7 @@ cd ../..
 ### 2. Training 2DGS
 Follow the [original repository](https://github.com/hbb1/2d-gaussian-splatting) to train the 2dgs model.
 ```bash
-python train.py -s "$DATA_DIR"
+python train.py -s data/3dovs/bed -m output/3dovs/bed/train_2dgs
 ```
 Optional mono normal prior ([StableNormal](https://github.com/Stable-X/StableNormal)) is available to [enhance the reconstruction quality](https://github.com/hugoycj/2d-gaussian-splatting-great-again).
 ```bash
@@ -67,8 +69,34 @@ python inference_stablenormal.py "$DATA_DIR"
 cd ../..
 
 ## Training 2DGS with Normal Priors 
-python train.py -s "$DATA_DIR" --w_normal_prior stablenormal_normals
+python train.py -s data/3dovs/bed --w_normal_prior stablenormal_normals -m output/3dovs/bed/train_2dgs
 ```
+
+Put the trained `point_cloud.ply` file into the `$DATA_DIR` directory. After successfully executing the above steps, the data directory should be structured as follows:
+   ```
+   data
+      |——————3D_OVS
+      |   |——————bed
+      |      |——————point_cloud.ply
+      |      |——————images
+      |         |——————00.jpg
+      |         ...
+      |      |——————sam
+      |         |——————mask
+      |            |——————00.png
+      |            ...
+      |      |——————sparse
+      |         |——————0
+      |            |——————cameras.bin
+      |            ...
+      |      |——————(optional) stablenormal_normals
+      |         |——————00.png
+      |         ...
+      |     ...
+   ```
+
+
+## Training with Spatial Contrastive Learning
 
 
 ## ToDos
