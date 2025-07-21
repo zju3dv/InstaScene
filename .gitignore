@@ -15,3 +15,7 @@ eval
 **/tmp
 .chat/
 .idea
+*.so
+
+
+!semantic_modules/CropFormer/mask2former/data
