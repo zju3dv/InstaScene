@@ -7,6 +7,8 @@
 > ICCV 2025
 
 
+https://github.com/user-attachments/assets/3837634c-4ef9-4078-87ab-68a1c3e4faf9
+
 ![Pipeline](assets/pipeline.png)
 
 
