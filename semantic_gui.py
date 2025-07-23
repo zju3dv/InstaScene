@@ -190,8 +190,8 @@ class GaussianSplattingGUI:
 
         self.width = width  # opt.width
         self.height = height  # opt.height
-        self.window_width = width
-        self.window_height = height
+        self.window_width = width + 100
+        self.window_height = height + 200
         self.camera = OrbitCamera(width, height, r=opt.radius)
 
         bg_color = [1, 1, 1] if opt.white_background else [0, 0, 0]
@@ -273,7 +273,6 @@ class GaussianSplattingGUI:
         self.newest_click_xy = []
         self.click_instance_colors = []
         self.clear_edit = False  # clear all the click prompts
-        self.binary_threshold_button = False  # binary segmentation mode
         self.segment3d_flag = False
         self.delete3d_flag = False
         self.reload_flag = False  # reload the whole scene / point cloud
@@ -293,27 +292,34 @@ class GaussianSplattingGUI:
         with dpg.texture_registry(show=False):
             dpg.add_raw_texture(self.width, self.height, self.render_buffer, format=dpg.mvFormat_Float_rgb,
                                 tag="_texture")
+        dpg.set_global_font_scale(1.5)
+        with dpg.theme() as global_theme:
+            with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (30, 30, 30), category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_Button, (80, 120, 180), category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (110, 160, 220), category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, (160, 200, 250), category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_FrameBgHovered, (50, 50, 50), category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_CheckMark, (200, 200, 255), category=dpg.mvThemeCat_Core)
+                dpg.add_theme_style(dpg.mvStyleVar_FrameRounding, 5)
+                dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 6, 4)
+        dpg.bind_theme(global_theme)
 
         ### register window
-        with dpg.window(tag="_primary_window", width=self.window_width + 300, height=self.window_height):
+        with dpg.window(tag="_primary_window", width=self.window_width + 50, height=self.window_height):
             dpg.add_image("_texture")  # add the texture
 
         dpg.set_primary_window("_primary_window", True)
 
+        # === Callback 函数 === #
         def callback_depth(sender, app_data):
             self.img_mode = (self.img_mode + 1) % 2
 
-        # --- interactive mode switch --- #
         def clickmode_callback(sender):
             self.clickmode_button = 1 - self.clickmode_button
 
         def clickmode_multi_callback(sender):
             self.clickmode_multi_button = dpg.get_value(sender)
-            print("clickmode_multi_button = ", self.clickmode_multi_button)
-
-        def binary_threshold_callback(sender):
-            self.binary_threshold_button = dpg.get_value(sender)
-            print("binary_threshold_button = ", self.binary_threshold_button)
 
         def clear_edit():
             self.clear_edit = True
@@ -333,50 +339,58 @@ class GaussianSplattingGUI:
             self.known_camera_mode = ~self.known_camera_mode
 
         # control window
-        with dpg.window(label="Control", tag="_control_window", width=300, height=300, pos=[self.window_width + 10, 0]):
+        with dpg.window(label="Control", tag="_control_window", width=400, height=400, pos=[self.width + 10, 0]):
+            dpg.add_text("Mouse position: click anywhere to start.", tag="pos_item")
+            dpg.add_spacing(count=2)
 
-            dpg.add_slider_float(label="ScoreThres", default_value=0.0,
-                                 min_value=0.0, max_value=1.0, tag="_ScoreThres")
-            dpg.add_button(label="render_option", tag="_button_depth",
-                           callback=callback_depth)
-            dpg.add_text("Mouse position: click anywhere to start. ", tag="pos_item")
-            dpg.add_checkbox(label="clickmode", callback=clickmode_callback, user_data="Some Data")
+            with dpg.group():
+                dpg.add_button(label="Render Option", tag="_button_depth", callback=callback_depth)
+                dpg.add_spacing(count=1)
+                dpg.add_slider_float(label="Score Threshold", default_value=0.0, min_value=0.0, max_value=1.0,
+                                     tag="_ScoreThres", width=200)
+                dpg.add_spacing(count=1)
+
+            dpg.add_checkbox(label="Click Mode", callback=clickmode_callback, user_data="Some Data")
+            dpg.add_spacing(count=1)
             dpg.add_checkbox(label="multi-clickmode", callback=clickmode_multi_callback, user_data="Some Data")
-            dpg.add_checkbox(label="binary_threshold", callback=binary_threshold_callback, user_data="Some Data")
-            dpg.add_button(label="clear_edit", callback=clear_edit, user_data="Some Data")
-            dpg.add_button(label="segment_3d", callback=callback_segment3d, user_data="Some Data")
-            dpg.add_button(label="delete_3d", callback=callback_delete3d, user_data="Some Data")
-            dpg.add_button(label="reload_data", callback=callback_reload, user_data="Some Data")
+            dpg.add_spacing(count=1)
+
+            dpg.add_separator()
+
+            with dpg.group():
+                dpg.add_button(label="clear_edit", callback=clear_edit, user_data="Some Data")
+                dpg.add_spacing(count=1)
+                dpg.add_button(label="segment_3d", callback=callback_segment3d, user_data="Some Data")
+                dpg.add_spacing(count=1)
+                dpg.add_button(label="delete_3d", callback=callback_delete3d, user_data="Some Data")
+                dpg.add_spacing(count=1)
+                dpg.add_button(label="reload_data", callback=callback_reload, user_data="Some Data")
+                dpg.add_spacing(count=1)
 
             if self.opt.use_colmap_camera:
-                dpg.add_button(label="Use Colmap Camera", tag="_button_colmap", callback=callback_known_camera)
-                self.known_camera_idx = dpg.add_slider_int(label="Colmap Camera Idx",
-                                                           default_value=0,
-                                                           max_value=len(self.train_cameras) - 1)
+                with dpg.group():
+                    dpg.add_button(label="Use Colmap Camera", tag="_button_colmap", callback=callback_known_camera)
+                    dpg.add_spacing(count=1)
+                    self.known_camera_idx = dpg.add_slider_int(label="Colmap Camera Idx",
+                                                               default_value=0,
+                                                               max_value=len(self.train_cameras) - 1)
+                    dpg.add_spacing(count=1)
 
-            def callback(sender, app_data, user_data):
-                self.load_model = False
+            def file_callback(sender, app_data, user_data):
                 file_data = app_data["selections"]
-                file_names = []
-                for key in file_data.keys():
-                    file_names.append(key)
-
+                file_names = list(file_data.keys())
                 self.opt.ply_file = file_data[file_names[0]]
-
-                # if not self.load_model:
-                print("loading model file...")
+                print(f"Loading model from {self.opt.ply_file}...")
                 self.engine.load_ply(self.opt.ply_file)
-                self.do_pca()  # calculate new self.proj_mat after loading new .ply file
-                print("loading model file done.")
+                self.do_pca()
+                print("Model loaded.")
                 self.load_model = True
 
-            with dpg.file_dialog(directory_selector=False, show=False, callback=callback, id="file_dialog_id",
-                                 width=700, height=400,
-                                 ):
+            with dpg.file_dialog(directory_selector=False, show=False, callback=file_callback,
+                                 id="file_dialog_id", width=700, height=400):
                 dpg.add_file_extension(".*")
-                dpg.add_file_extension("", color=(150, 255, 150, 255))
-                dpg.add_file_extension("Ply (*.ply){.ply}", color=(0, 255, 255, 255))
-            dpg.add_button(label="File Selector", callback=lambda: dpg.show_item("file_dialog_id"))
+                dpg.add_file_extension("Ply files (*.ply){.ply}", color=(0, 255, 255, 255))
+            dpg.add_button(label="Load .ply File", callback=lambda: dpg.show_item("file_dialog_id"))
 
         if self.debug:
             with dpg.collapsing_header(label="Debug"):

@@ -119,11 +119,14 @@ data directory should be structured as follows:
 
 We train the model on a NVIDIA Tesla A100 GPU (40GB) with 10,000 iterations for about 20 minutes & less than 8GB GPU.
 - Reduce the GPU & Speed the time with `--sample_batchsize 8 * 1024`
+- Use `--gram_feat_3d` for a more robust feature field 
+- It's normal to get stuck at the `DBScan Filter Stage`, since the backgrount gaussian points may be divided into multi-regions.
 ```bash
-python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs --use_seg_feature --iterations 10000
+python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs --use_seg_feature --iterations 10000 --load_filter_segmap
 ```
 
-After completing the training, we provide a GUI for real-time ineractive segmentation.
+After completing the training, we provide a GUI modified from [Omniseg3D]() for real-time ineractive segmentation.
+The `point_cloud.ply` in [our preprocessed datasets]() already has pretrained semantic features.
 ```bash
 python semantic_gui.py \
   --ply_path data/lerf/waldo_kitchen/point_cloud.ply \
@@ -131,12 +134,27 @@ python semantic_gui.py \
   --use_colmap_camera \
   --source_path data/lerf/waldo_kitchen --resolution 1
 ```
+- `Left Mouse` for changing rendering view
+- `Click Mode` + 0.9 `Threshold` + `Right Mouse` for segmentation
+- `Clear Edit` for clear the segmentation cache
+- `Delete 3D` for remove the chosen gaussians
+- `Segment 3D` for only keep the chosen gaussians
+- `Reload Data` for reload the gaussian model
+
+https://github.com/user-attachments/assets/aca0ae53-744e-4037-99b2-197917953303
 
 ## ToDos
 
 - [x] Release project page and paper.
-- [ ] Release scene decomposition code.
+- [x] Release scene decomposition code.
 - [ ] Release in-situ generation code.
+
+## Acknowledgements
+Some codes are modified from 
+[Omniseg3D](https://github.com/THU-luvision/OmniSeg3D),
+[MaskClustering](https://github.com/PKU-EPIC/MaskClustering),
+[2DGS++](https://github.com/hugoycj/2d-gaussian-splatting-great-again),
+thanks for the authors for their valuable works.
 
 ### Citation
 

@@ -58,9 +58,12 @@ class GausCluster:
             mask_3d_labels.append(binary_mask)
 
         mask_3d_labels = np.stack(mask_3d_labels, axis=1)
-
-        underseg_mask_ids = np.stack([list(mask_assocation['global_frame_mask_list'][id]) for id in
-                                      mask_assocation["undersegment_mask_ids"]], axis=0)
+        # Note: May No underseg_mask
+        if len(mask_assocation["undersegment_mask_ids"]) > 0:
+            underseg_mask_ids = np.stack([list(mask_assocation['global_frame_mask_list'][id]) for id in
+                                          mask_assocation["undersegment_mask_ids"]], axis=0)
+        else:
+            underseg_mask_ids = []
 
         output_dict = {
             "mask_3d_labels": mask_3d_labels,
