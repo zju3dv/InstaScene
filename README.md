@@ -24,7 +24,8 @@ pip install --extra-index-url=https://pypi.nvidia.com "cudf-cu11==24.2.*" "cuml-
 pip install -r requirements.txt
 ```
 
-Refer to [here](https://github.com/ashawkey/cubvh?tab=readme-ov-file#trouble-shooting) If failed with `raytracing`.
+
+<!-- Refer to [here](https://github.com/ashawkey/cubvh?tab=readme-ov-file#trouble-shooting) If failed with `raytracing`. -->
 
 Install [`CropFormer`](https://github.com/qqlu/Entity/tree/main/Entityv2/CropFormer) for instance-level segmentation.
 
@@ -63,7 +64,7 @@ bash run_segmentation.sh "$DATA_DIR"
 cd ../..
 ```
 
-### 2. Training 2DGS
+### 2. Training 2DGS.
 
 Follow the [original repository](https://github.com/hbb1/2d-gaussian-splatting) to train the 2dgs model.
 
@@ -114,12 +115,21 @@ data directory should be structured as follows:
 
 ## Training with Spatial Contrastive Learning
 
-Note that for simple scenes, such as 3D-OVS (simple-object centered without overlap),
-no need to use spatial relationships to obtain robust semantic priors as shown in our supplementary material.
-Single-view constrastive learning is sufficient to achieve strong performance.
+> Note that for simple scenes, such as 3D-OVS (simple-object centered without overlap), no need to use spatial relationships to obtain robust semantic priors as shown in our supplementary material. Single-view constrastive learning is sufficient to achieve strong performance.
 
+We train the model on a NVIDIA Tesla A100 GPU (40GB) with 10,000 iterations for about 20 minutes & less than 8GB GPU.
+- Reduce the GPU & Speed the time with `--sample_batchsize 8 * 1024`
 ```bash
-python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs --use_seg_feature --iterations 10000 --gram_feat_3d
+python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs --use_seg_feature --iterations 10000
+```
+
+After completing the training, we provide a GUI for real-time ineractive segmentation.
+```bash
+python semantic_gui.py \
+  --ply_path data/lerf/waldo_kitchen/point_cloud.ply \
+  --interactive_note lerf_waldo_kitchen \
+  --use_colmap_camera \
+  --source_path data/lerf/waldo_kitchen --resolution 1
 ```
 
 ## ToDos

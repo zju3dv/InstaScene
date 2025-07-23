@@ -80,7 +80,8 @@ def loadCam(args, id, cam_info, resolution_scale, load_images=True):
             _normal = None
 
         segmap_name = os.path.basename(cam_info.image_path).split(".")[0] + ".png"
-        segmap_type = "mask_filtered" if os.path.exists(os.path.join(args.source_path, "sam/mask_filtered")) else "mask"
+        segmap_type = "mask_filtered" if (os.path.exists(os.path.join(args.source_path, "sam/mask_filtered")) \
+                                          and args.load_filter_segmap) else "mask"
         segmap_path = os.path.join(args.source_path, f"sam/{segmap_type}", segmap_name)
         if args.use_seg_feature and os.path.exists(segmap_path):
             _segmap = Image.open(segmap_path)

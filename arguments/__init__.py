@@ -65,6 +65,8 @@ class ModelParams(ParamGroup):
         self.seg_feat_dim = 16
         self.load_seg_feat = False
 
+        self.load_filter_segmap = False  # use filtered semantic
+
         self.preload_robust_semantic = ""
 
         super().__init__(parser, "Loading Parameters", sentinel)

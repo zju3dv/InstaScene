@@ -129,7 +129,7 @@ if __name__ == "__main__":
     seq_dir = args.scene_dir
     image_list = sorted(glob.glob(os.path.join(seq_dir, args.image_path_pattern)))
     print(os.path.join(seq_dir, args.image_path_pattern))
-    #                        key=lambda a: int(a.split("/")[-1].split(".")[0]))
+
     output_vis_dir = os.path.join(seq_dir, 'sam_vis/mask')
     output_seg_dir = os.path.join(seq_dir, 'sam/mask')
     os.makedirs(output_vis_dir, exist_ok=True)
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         # select by confidence threshold
         selected_indexes = (pred_scores >= args.confidence_threshold)
         selected_scores = pred_scores[selected_indexes]
-        selected_masks = pred_masks[selected_indexes].cpu().numpy() > 0
+        selected_masks = pred_masks[selected_indexes]
 
         _, m_H, m_W = selected_masks.shape
         mask_image = np.zeros((m_H, m_W), dtype=np.uint8)
@@ -164,9 +164,9 @@ if __name__ == "__main__":
             mask_id += 1
         cv2.imwrite(os.path.join(output_seg_dir, os.path.basename(path).split('.')[0] + '.png'), mask_image)
 
-
-
+        '''
         save_vis_file = os.path.join(output_vis_dir, os.path.basename(path).split('.')[0] + '.png')
         masks = selected_masks[selected_masks.sum((1, 2)).argsort()]  # 按照mask数量进行排序
         img = read_image(path, format="RGB")
-        Image.fromarray(vis_mask(img, masks)).save(save_vis_file)
+        Image.fromarray(vis_mask(img, masks.cpu().numpy())).save(save_vis_file)
+        '''

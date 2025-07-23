@@ -1,11 +1,4 @@
-# Copyright (C) 2024, OmniSeg3D: Omniversal 3D Segmentation via Hierarchical Contrastive Learning
-# https://github.com/OceanYing/OmniSeg3D-GS
-# All rights reserved.
-#
-# ------------------------------------------------------------------------
-# Modified from codes in Gaussian-Splatting, and Gaussian-Grouping
-# GRAPHDECO research group, https://team.inria.fr/graphdeco
-# Gaussian-Grouping research group, https://github.com/lkeab/gaussian-grouping
+# Refer from Omniseg3D GUI https://github.com/THU-luvision/OmniSeg3D
 
 import torch
 import open3d as o3d
@@ -16,6 +9,8 @@ import cv2
 from sklearn.decomposition import PCA
 import matplotlib
 import os
+
+from argparse import ArgumentParser
 
 from scene.dataset_readers import sceneLoadTypeCallbacks
 from scene.gaussian_model import GaussianModel
@@ -59,13 +54,11 @@ class CONFIG:
 
     # ckpt TODO: load from gui window.
 
-    ply_path = "/home/bytedance/point_cloud.ply"
-    interactive_note = "kitchen"
-
-    use_pseudo_normal = True
+    ply_path = ""
+    interactive_note = ""
 
     use_colmap_camera = True
-    source_path = "data/lerf/figurines"
+    source_path = ""
     only_load_camera = True
     resolution = 1
     downscale_ratio = 1
@@ -628,6 +621,28 @@ class GaussianSplattingGUI:
 
 if __name__ == "__main__":
     opt = CONFIG()
+    '''
+    python semantic_gui.py --ply_path data/lerf/waldo_kitchen/point_cloud.ply \
+                           --interactive_note lerf_waldo_kitchen \
+                           --use_colmap_camera \
+                           --source_path data/lerf/waldo_kitchen --resolution 1
+    '''
+
+    parser = ArgumentParser(description="Training script parameters")
+    parser.add_argument('--ply_path', type=str, default="data/lerf/waldo_kitchen/point_cloud.ply")
+    parser.add_argument('--interactive_note', type=str, default="lerf_waldo_kitchen")
+
+    parser.add_argument('--use_colmap_camera', action="store_true")
+    parser.add_argument('--source_path', type=str, default="data/lerf/waldo_kitchen")
+    parser.add_argument('--resolution', type=int, default=1)
+    args = parser.parse_args()
+
+    opt.ply_path = args.ply_path
+    opt.interactive_note = args.interactive_note
+    opt.use_colmap_camera = args.use_colmap_camera
+    opt.source_path = args.source_path
+    opt.resolution = args.resolution
+
     gs_model = GaussianModel(opt.sh_degree)
     gui = GaussianSplattingGUI(opt, gs_model)
 

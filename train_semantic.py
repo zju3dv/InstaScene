@@ -236,7 +236,7 @@ class SegSplatting:
         save_partial_dir = os.path.join(save_dir, "label_pointclouds")
         os.makedirs(save_partial_dir, exist_ok=True)
         if use_hdbscan:
-            # Following Garfield
+            # Following Garfield https://github.com/chungmin99/garfield
             from cuml.cluster.hdbscan import HDBSCAN
             from sklearn.neighbors import NearestNeighbors
 
@@ -420,7 +420,7 @@ class SegSplatting:
 
 
 if __name__ == "__main__":
-    # python train_semantic.py -s data/3dovs/bed -m train_semanticgs --use_seg_feature --iterations 10000
+    # python train_semantic.py -s data/3dovs/bed -m train_semanticgs --use_seg_feature --iterations 10000 --load_filter_segmap
     parser = ArgumentParser(description="Training script parameters")
     lp = ModelParams(parser)
     op = OptimizationParams(parser)

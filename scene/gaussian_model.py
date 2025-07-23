@@ -148,14 +148,12 @@ class GaussianModel:
 
     def set_3d_feat(self, Seg3D_masks, gram_feat=False):
         '''
-        gram_feat: more robust 3D feature as supervision
-        :param clustering3d_mask:
+        :param Seg3D_masks:
         :param gram_feat:
         :return:
         '''
         self.class_feat = None
         if self._seg_feature is None:
-            # 开始feature训练的时候，往模型中加入language feature参数
             seg_feature = torch.rand((self._xyz.shape[0], self.seg_feat_dim), device="cuda")
             if gram_feat:
                 init_feat = torch.rand((Seg3D_masks.shape[1], self.seg_feat_dim)).cuda()
