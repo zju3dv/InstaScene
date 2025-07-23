@@ -127,10 +127,8 @@ class OptimizationParams(ParamGroup):
         self.densify_until_iter = 15_000
         self.densify_grad_threshold = 0.0002
 
-        self.only_2d_noisy_prior = False
-        self.add_3d_prior = True
-        self.add_filter_2d = True
-        self.add_mv_2d = True
+        self.gram_feat_3d = True
+
         super().__init__(parser, "Optimization Parameters")
 
 

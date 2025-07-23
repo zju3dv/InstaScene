@@ -94,7 +94,9 @@ RasterizeGaussiansCUDA(
   else
     out_extra = torch::empty({0}, float_opts);
 
+  // Assume each pixel are covered less than 100 gaussian
   torch::Tensor gau_related_pixels = torch::full({H * W * 100, 2}, -1, means3D.options().dtype(torch::kInt32));
+  // count total used gaussian
   torch::Tensor gau_pixel_indices = torch::full({1}, -1, means3D.options().dtype(torch::kInt32));
 
   torch::Device device(torch::kCUDA);

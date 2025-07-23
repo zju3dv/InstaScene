@@ -418,8 +418,8 @@ renderCUDA(
 			for (int ch = 0; ch < CHANNELS; ch++)
 				C[ch] += features[collected_id[j] * CHANNELS + ch] * w;
 
-
-			if (T > 0.5f && test_T < 0.5)
+            // test_T: cumprod(1 - alpha)
+			if (w > 0.1) // (test_T < 0.5) (T > 0.5f && test_T < 0.5)
 			{
 			    // atomicAdd(&(gau_related_pixels[collected_id[j]]), 1);
 			    int gau_pixel_indice = atomicAdd(&(gau_pixel_indices[0]), 1) + 1;

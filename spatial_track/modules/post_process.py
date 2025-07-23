@@ -1,8 +1,16 @@
 import numpy as np
+
+import numpy as np
 import os
 import torch
-from spatialtrack.utils.geometry import judge_bbox_overlay
 from tqdm import tqdm
+
+
+def judge_bbox_overlay(bbox_1, bbox_2):
+    for i in range(3):
+        if bbox_1[0][i] > bbox_2[1][i] or bbox_2[0][i] > bbox_1[1][i]:
+            return False
+    return True
 
 
 def merge_overlapping_objects(total_point_ids_list, total_bbox_list, total_mask_list, overlapping_ratio):
@@ -159,7 +167,7 @@ def export(dataset, total_point_ids_list, total_mask_list, args):
     '''
         Export class agnostic masks in standard evaluation format
         and object dict with corresponding mask lists for semantic instance segmentation.
-        Node that after spatialtrack, a node = a cluster of masks = an object.
+        Node that after clustering, a node = a cluster of masks = an object.
     '''
     total_point_num = dataset.get_scene_points().shape[0]
     class_agnostic_mask_list = []
@@ -178,3 +186,48 @@ def export(dataset, total_point_ids_list, total_mask_list, args):
 
     os.makedirs(os.path.join(dataset.object_dict_dir, args.config), exist_ok=True)
     np.save(os.path.join(dataset.object_dict_dir, 'object_dict.npy'), object_dict, allow_pickle=True)
+
+
+def post_process(gaussian, mask_assocation, clustering_args):
+    # For each cluster, we follow OVIR-3D to i) use DBScan to split the disconnected point cloud into different objects
+    # ii) filter the points that hardly appear within this cluster, i.e. the detection ratio is lower than a threshold
+    nodes = mask_assocation['nodes']
+    mask_gaussian_pclds = mask_assocation['mask_gaussian_pclds']
+    global_frame_mask_list = mask_assocation["global_frame_mask_list"]
+    gaussian_in_frame_matrix = mask_assocation["gaussian_in_frame_matrix"]
+
+    total_point_ids_list, total_bbox_list, total_mask_list = [], [], []
+    scene_points = gaussian.get_xyz.cpu().numpy()
+
+    iterator = tqdm(nodes, total=len(nodes), desc="DBScan Filter with Each Instance")
+
+    for node in iterator:
+        if len(node.mask_list) < 2:  # objects merged from less than 2 masks are ignored
+            continue
+        pcld, point_ids = node.get_point_cloud(scene_points)
+        if True:
+            pcld_list, point_ids_list = dbscan_process(pcld, point_ids, DBSCAN_THRESHOLD=0.1,
+                                                       min_points=4)  # split the disconnected point cloud into different objects
+        else:
+            pcld_list, point_ids_list = [pcld], [np.array(point_ids)]
+        point_ids_list, bbox_list, mask_list = filter_point(gaussian_in_frame_matrix, node, pcld_list,
+                                                            point_ids_list,
+                                                            mask_gaussian_pclds,
+                                                            clustering_args)
+
+        total_point_ids_list.extend(point_ids_list)
+        total_bbox_list.extend(bbox_list)
+        total_mask_list.extend(mask_list)
+
+    # merge objects that have larger than 0.8 overlapping ratio
+    total_point_ids_list_merge, total_mask_list_merge, invalid_object_mask = merge_overlapping_objects(
+        total_point_ids_list, total_bbox_list, total_mask_list, overlapping_ratio=0.8)
+    total_point_ids_list = total_point_ids_list_merge
+    total_mask_list = total_mask_list_merge
+
+    mask_assocation.update({
+        'total_point_ids_list': total_point_ids_list,
+        'total_mask_list': total_mask_list,
+    })
+
+    return mask_assocation

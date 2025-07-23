@@ -17,6 +17,7 @@ from PIL import Image
 import os
 import torch.nn.functional as F
 import sys
+import torch
 
 WARNED = False
 
@@ -78,25 +79,20 @@ def loadCam(args, id, cam_info, resolution_scale, load_images=True):
         else:
             _normal = None
 
-        segmap_path = os.path.join(args.source_path, "sam/mask",
-                                   os.path.basename(cam_info.image_path).split(".")[0] + ".png")
+        segmap_name = os.path.basename(cam_info.image_path).split(".")[0] + ".png"
+        segmap_type = "mask_filtered" if os.path.exists(os.path.join(args.source_path, "sam/mask_filtered")) else "mask"
+        segmap_path = os.path.join(args.source_path, f"sam/{segmap_type}", segmap_name)
         if args.use_seg_feature and os.path.exists(segmap_path):
             _segmap = Image.open(segmap_path)
             resized_segmap = PILtoTorch(_segmap, resolution, resize_type=Image.NEAREST, scale=False)
         else:
             resized_segmap = None
 
-        segmap_path = os.path.join(args.source_path, "sam/mask_sorted",
-                                   os.path.basename(cam_info.image_path).split(".")[0] + ".png")
-        if args.use_grouping_mask and os.path.exists(segmap_path):
-            import torch
-            if os.path.exists(segmap_path):
-                _segmap = Image.open(segmap_path)
-                resized_sorted_segmap = PILtoTorch(_segmap, resolution, resize_type=Image.NEAREST, scale=False)
-            else:
-                resized_sorted_segmap = None
-        else:
-            resized_sorted_segmap = None
+        segmap_path = os.path.join(args.source_path, "sam/mask_sorted", segmap_name)
+        resized_sorted_segmap = None
+        if os.path.exists(segmap_path):
+            _segmap = Image.open(segmap_path)
+            resized_sorted_segmap = PILtoTorch(_segmap, resolution, resize_type=Image.NEAREST, scale=False)
 
     return Camera(colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T,
                   FoVx=cam_info.FovX, FoVy=cam_info.FovY,

@@ -1,5 +1,6 @@
+from tqdm import tqdm
 import networkx as nx
-from spatialtrack.graph.node import Node
+from spatial_track.modules.node import Node
 import torch
 
 
@@ -35,3 +36,21 @@ def update_graph(nodes, observer_num_threshold, connect_threshold):
 
     G = nx.from_numpy_array(A)
     return G
+
+
+def iterative_clustering(init_mask_assocation, clustering_args):
+    iterator = tqdm(enumerate(init_mask_assocation["observer_num_thresholds"]),
+                    total=len(init_mask_assocation["observer_num_thresholds"]), desc="Optimizing the Mask Association")
+
+    nodes = init_mask_assocation["nodes"]
+    for iterate_id, observer_num_threshold in iterator:
+        graph = update_graph(nodes, observer_num_threshold,
+                             clustering_args.view_consensus_threshold)  # connect_threshold: 0.9
+        nodes = cluster_into_new_nodes(iterate_id + 1, nodes, graph)
+        torch.cuda.empty_cache()
+
+    # print("### Nodes from {0} to {1} ###".format(len(init_mask_assocation["nodes"]), len(nodes)))
+
+    init_mask_assocation["nodes"] = nodes
+
+    return init_mask_assocation

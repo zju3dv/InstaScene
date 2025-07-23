@@ -120,7 +120,7 @@ class GaussianModel:
 
     @property
     def get_seg_feature(self):
-        return self._seg_feature
+        return self._seg_feature / (torch.norm(self._seg_feature, p=2, dim=1, keepdim=True) + 1e-6)
 
     @property
     def get_features(self):
@@ -144,16 +144,20 @@ class GaussianModel:
         self.seg_feat_dim = modelparams.seg_feat_dim
         self.load_seg_feat = modelparams.load_seg_feat
 
-    def set_clustering3d_feat(self, clustering3d_mask, gram_feat=True):
+    def set_3d_feat(self, Seg3D_masks, gram_feat=False):
+        '''
+        gram_feat: more robust 3D feature as supervision
+        :param clustering3d_mask:
+        :param gram_feat:
+        :return:
+        '''
+        self.class_feat = None
         if self._seg_feature is None:
             # 开始feature训练的时候，往模型中加入language feature参数
-            seg_feature = torch.rand((self._xyz.shape[0], self.seg_feat_dim), device="cuda")  # TODO: 只有3维
-
-            self.class_feat = None
+            seg_feature = torch.rand((self._xyz.shape[0], self.seg_feat_dim), device="cuda")
             if gram_feat:
-                init_feat = torch.rand((clustering3d_mask.shape[1], self.seg_feat_dim)).cuda()
+                init_feat = torch.rand((Seg3D_masks.shape[1], self.seg_feat_dim)).cuda()
 
-                # 对feat进行施密特正交化
                 def gram_schmidt(vectors):
                     orthogonal_vectors = []
                     for v in vectors:
@@ -164,15 +168,14 @@ class GaussianModel:
 
                 init_feat = gram_schmidt(init_feat)
 
-                for i in range(clustering3d_mask.shape[1]):
-                    curr_mask = clustering3d_mask[:, i]
+                for i in range(Seg3D_masks.shape[1]):
+                    curr_mask = Seg3D_masks[:, i]
                     gs_ids = torch.from_numpy(np.where(curr_mask)[0]).cuda()
                     seg_feature[gs_ids] = init_feat[i]  # torch.rand((self.seg_feat_dim)).cuda()
 
                 self.class_feat = init_feat
 
             seg_feature = seg_feature / (seg_feature.norm(dim=1, keepdim=True) + 1e-9)
-
             self._seg_feature = nn.Parameter(seg_feature.requires_grad_(True))
 
     def create_from_pcd(self, pcd: BasicPointCloud, spatial_lr_scale: float, require_grad=True):

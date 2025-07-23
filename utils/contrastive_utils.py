@@ -52,37 +52,35 @@ def importance_sampling(semantic_map, num_samples=1000):
     return sampled_y, sampled_x
 
 
-def contrastive_loss(features, masks, predef_u_list=None, min_pixnum=0, temp_lambda=1000,
-                     consider_negative=False):
-    # predef_u_list: 强制让其接近预先定义好的feat
-    if not consider_negative:
-        valid_semantic_idx = masks > 0  # note:已经移除0了
-    else:  # 考虑0标签
-        valid_semantic_idx = torch.ones_like(masks, dtype=torch.bool).cuda()
+def contrastive_loss(features, masks, predef_u_list=None, min_pixnum=0, temp_lambda=1000):
+    '''
+    :param features:
+    :param masks:
+    :param predef_u_list:
+    :param min_pixnum:
+    :param temp_lambda:
+    :return:
+    '''
+    valid_semantic_idx = masks > 0  # note: no consider negative masks
     # 同时过滤掉pixnum<20
     mask_ids, mask_nums = torch.unique(masks, return_counts=True)
     valid_mask_ids = mask_ids[mask_nums > min_pixnum]
     valid_semantic_idx = valid_semantic_idx & torch.isin(masks, valid_mask_ids)
 
     masks = masks[valid_semantic_idx].type(torch.int64)  # 移除了0
-    if not consider_negative:
-        masks = masks - 1  # 移除0之后所有的id要减1
+    masks = masks - 1
     features = features[valid_semantic_idx, :]  # N,16
     features = features / (torch.norm(features, dim=-1, keepdim=True) + 1e-9).detach()
 
     mask_ids, mask_nums = torch.unique(masks, return_counts=True)
     if predef_u_list is not None:
         u_list = predef_u_list[mask_ids + 1]
-    # 将mask重新赋予idx
+    # remapping the mask index
     label_mapping = torch.zeros(mask_ids.max() + 1, dtype=torch.long).cuda()
     label_mapping[mask_ids] = torch.arange(len(mask_ids)).cuda()
     masks = label_mapping[masks]
     mask_ids, mask_nums = torch.unique(masks, return_counts=True)
 
-    '''
-    mask_ids = mask_ids[mask_nums > min_pixnum]
-    mask_nums = mask_nums[mask_nums > min_pixnum]
-    '''
     mask_num = mask_ids.shape[0]  # cluster number
     # note: mask=0被移除掉了
     # 计算各个mask的均值和方差
@@ -105,40 +103,6 @@ def contrastive_loss(features, masks, predef_u_list=None, min_pixnum=0, temp_lam
     ProtoNCE = -torch.sum(torch.log(dist[torch.arange(features.shape[0]), masks].unsqueeze(1) / (dist_sum + 1e-9)))
 
     return ProtoNCE
-    """
-
-    valid_semantic_idx = masks > 0
-    sam_t = masks[valid_semantic_idx].long()
-    sam_o = features[valid_semantic_idx.squeeze(), :]  # N,16
-    sam_o = sam_o / (torch.norm(sam_o, dim=-1, keepdim=True) + 1e-6).detach()
-
-    cluster_ids, cnums_all = torch.unique(sam_t, return_counts=True)
-    cluster_ids = cluster_ids[cnums_all > min_pixnum]
-    cnums = cnums_all[cnums_all > min_pixnum]
-    cnum = cluster_ids.shape[0]  # cluster number
-
-    u_list = torch.zeros([cnum, sam_o.shape[-1]], dtype=torch.float32, device=sam_o.device)
-    phi_list = torch.zeros([cnum, 1], dtype=torch.float32, device=sam_o.device)
-
-    for i in range(cnum):
-        cluster = sam_o[sam_t == cluster_ids[i], :]
-        u_list[i] = torch.mean(cluster, dim=0, keepdim=True)  # 每一个mask的均值
-        phi_list[i] = torch.norm(cluster - u_list[i], dim=1, keepdim=True).sum() / (cnums[i] * torch.log(cnums[i] + 10))
-        # 分母的温度系数
-    phi_list = torch.clip(phi_list * 10, min=0.5, max=1.0)  # why x10
-    phi_list = phi_list.detach()
-
-    ProtoNCE = 0
-
-    for i in range(cnum):
-        cluster = sam_o[sam_t == cluster_ids[i], :]  # 当前cluster的
-        dist = torch.exp(torch.matmul(cluster, u_list.T) / phi_list.T)  # [N_pix, N_cluster]
-        ProtoNCE += -torch.sum(torch.log(
-            dist[:, [i]] / (dist[:, :].sum(dim=1, keepdim=True) + 1e-6)
-        ))
-
-    return ProtoNCE
-    """
 
 
 def consist_3d_feat_loss(sample_feat, sampled_gaussian_xyz, global_feat, global_xyz, topk=5):
@@ -253,12 +217,7 @@ def feature_to_rgb(features, pca_proj_mat=None, type="PCA"):
 
             # Reshape back to (H, W, 3)
             low_feat = pca_result.reshape(H, W, 3)
-    '''
-    elif type == "UMAP":
-        reducer = umap.UMAP(n_components=3, random_state=42)
-        umap_result = reducer.fit_transform(features_reshaped.cpu().numpy())
-        low_feat = umap_result.reshape(H, W, 3)
-    '''
+
     # Normalize to [0, 255]
     low_feat = (low_feat * 0.5 + 0.5).clip(0, 1)
     feat_normalized = 255 * (low_feat)  # * 0.5 + 0.5
@@ -290,7 +249,7 @@ def mask_to_rgb(mask):
     return np.uint8(colored_segmentation[..., :3] * 255.0)
 
 
-def rearange_mask(mask_folder, clustering_result):
+def rearrange_mask(mask_folder, mask_assocation_info):
     mask_files = sorted(glob.glob(f"{mask_folder}/*"))
     save_dir = os.path.join(os.path.dirname(mask_folder), "mask_sorted")
     # if os.path.exists(save_dir):

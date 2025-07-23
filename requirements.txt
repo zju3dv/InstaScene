@@ -1,6 +1,6 @@
 plyfile
 tqdm
-dearpygui
+dearpygui==1.11.1
 opencv-python
 joblib
 numpy==1.26.4
