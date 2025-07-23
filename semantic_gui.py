@@ -59,13 +59,13 @@ class CONFIG:
 
     # ckpt TODO: load from gui window.
 
-    ply_path = "/home/bytedance/Projects/3DGS/InstaScene/data/3dovs/bed/point_cloud.ply"
+    ply_path = "/home/bytedance/point_cloud.ply"
     interactive_note = "kitchen"
 
     use_pseudo_normal = True
 
     use_colmap_camera = True
-    source_path = "/home/bytedance/Projects/3DGS/InstaScene/data/3dovs/bed"
+    source_path = "data/lerf/figurines"
     only_load_camera = True
     resolution = 1
     downscale_ratio = 1

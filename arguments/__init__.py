@@ -65,10 +65,7 @@ class ModelParams(ParamGroup):
         self.seg_feat_dim = 16
         self.load_seg_feat = False
 
-        self.use_grouping_mask = True
-        self.use_grouping_loss = False
-
-        self.only_3d_supervised = False
+        self.preload_robust_semantic = ""
 
         super().__init__(parser, "Loading Parameters", sentinel)
 

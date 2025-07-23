@@ -36,8 +36,11 @@ class SegSplatting:
     def RobustSemanticPriors(self):
         print("\033[91mRunning Mask Clustering with Spatial Gaussian Tracker... \033[0m")
 
-        segment_save_dir = os.path.join(self.model_path, f"semantic_association")
-        os.makedirs(segment_save_dir, exist_ok=True)
+        if os.path.exists(self.modelparams.preload_robust_semantic):
+            segment_save_dir = self.modelparams.preload_robust_semantic
+        else:
+            segment_save_dir = os.path.join(self.model_path, f"semantic_association")
+            os.makedirs(segment_save_dir, exist_ok=True)
 
         scene = Scene(self.modelparams, self.gaussians, loaded_gaussian=True)
         viewpoint_stack = scene.getTrainCameras().copy()
@@ -57,6 +60,7 @@ class SegSplatting:
 
         # Filter undersegment
         self.undersegment_masks = self.robust_semantic_priors["underseg_mask_ids"]
+        ## TODO: fix error undersegment -> 3D mask tracking
         if not os.path.exists(os.path.join(self.data_dir, "sam/mask_filtered")):
             self.gausclustering.filter_undersegment_mask(os.path.join(self.data_dir, "sam/mask"),
                                                          self.undersegment_masks)
@@ -102,7 +106,7 @@ class SegSplatting:
             if self.gaussians.class_feat is not None:
                 segmap_lists = [viewpoint_cam.segmap.squeeze().cuda(), viewpoint_cam.sorted_segmap.squeeze().cuda()]
             else:
-                segmap_lists = [viewpoint_cam.segmap.squeeze().cuda()]
+                segmap_lists = [viewpoint_cam.segmap.squeeze().cuda()]  # mask with undersegment filter
             for gt_segmap in segmap_lists:
                 batchsize = self.optimparams.sample_batchsize
                 valid_labels_mask = gt_segmap > 0
@@ -220,9 +224,14 @@ class SegSplatting:
                 if iteration == self.optimparams.iterations:
                     progress_bar.close()
 
+        self.export_segment_results(iteration, use_hdbscan=True, note=f"iteration_{iteration}_hdbscan")
+
     @torch.no_grad()
-    def export_segment_results(self, iteration, score_threshold=0.9, use_hdbscan=False):
-        save_dir = os.path.join(self.model_path, f"point_cloud/iteration_{iteration}")
+    def export_segment_results(self, iteration, score_threshold=0.9, use_hdbscan=False, note=None):
+        if note is None:
+            save_dir = os.path.join(self.model_path, f"point_cloud/iteration_{iteration}")
+        else:
+            save_dir = os.path.join(self.model_path, f"point_cloud/{note}")
         os.makedirs(save_dir, exist_ok=True)
         save_partial_dir = os.path.join(save_dir, "label_pointclouds")
         os.makedirs(save_partial_dir, exist_ok=True)

@@ -118,6 +118,10 @@ Note that for simple scenes, such as 3D-OVS (simple-object centered without over
 no need to use spatial relationships to obtain robust semantic priors as shown in our supplementary material.
 Single-view constrastive learning is sufficient to achieve strong performance.
 
+```bash
+python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs --use_seg_feature --iterations 10000 --gram_feat_3d
+```
+
 ## ToDos
 
 - [x] Release project page and paper.
