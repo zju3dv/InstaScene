@@ -118,8 +118,8 @@ data directory should be structured as follows:
 > Note that for simple scenes, such as 3D-OVS (simple-object centered without overlap), no need to use spatial relationships to obtain robust semantic priors as shown in our supplementary material. Single-view constrastive learning is sufficient to achieve strong performance.
 
 We train the model on a NVIDIA Tesla A100 GPU (40GB) with 10,000 iterations for about 20 minutes & less than 8GB GPU.
-- Reduce the GPU & Speed the time with `--sample_batchsize 8 * 1024`
-- Use `--gram_feat_3d` for a more robust feature field 
+- Reduce the GPU & Speed the time with `--sample_batchsize 8 * 1024`.
+- Use `--gram_feat_3d` for a more robust feature field in complex scenes.
 - It's normal to get stuck at the `DBScan Filter Stage`, since the backgrount gaussian points may be divided into multi-regions.
 ```bash
 python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs --use_seg_feature --iterations 10000 --load_filter_segmap

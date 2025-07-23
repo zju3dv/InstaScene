@@ -68,38 +68,38 @@ def contrastive_loss(features, masks, predef_u_list=None, min_pixnum=0, temp_lam
     valid_semantic_idx = valid_semantic_idx & torch.isin(masks, valid_mask_ids)
 
     masks = masks[valid_semantic_idx].type(torch.int64)  # 移除了0
-    masks = masks - 1
+    masks = masks - 1  # from zero
     features = features[valid_semantic_idx, :]  # N,16
     features = features / (torch.norm(features, dim=-1, keepdim=True) + 1e-9).detach()
 
     mask_ids, mask_nums = torch.unique(masks, return_counts=True)
     if predef_u_list is not None:
-        u_list = predef_u_list[mask_ids + 1]
-    # remapping the mask index
+        u_list = predef_u_list[mask_ids]
+    # remapping the mask index -> continual indices
     label_mapping = torch.zeros(mask_ids.max() + 1, dtype=torch.long).cuda()
     label_mapping[mask_ids] = torch.arange(len(mask_ids)).cuda()
     masks = label_mapping[masks]
     mask_ids, mask_nums = torch.unique(masks, return_counts=True)
 
     mask_num = mask_ids.shape[0]  # cluster number
-    # note: mask=0被移除掉了
-    # 计算各个mask的均值和方差
+    # compute average and variance
     if predef_u_list is None:
+        # compute current mask average
         u_list_sum = torch.zeros(mask_num, features.shape[1]).cuda()
         u_list_sum.scatter_add_(0, masks.unsqueeze(1).expand(-1, features.shape[1]), features)
         u_list = u_list_sum / mask_nums[:, None]  # 均值 N_labels,16
 
-    cluster_diff = features - u_list[masks]  # 每个样本与其所属均值的差
+    cluster_diff = features - u_list[masks]
     cluster_diff_norm = torch.norm(cluster_diff, dim=1, keepdim=True)
     phi_list_sum = torch.zeros(mask_num, 1).cuda()
     phi_list_sum.scatter_add_(0, masks.unsqueeze(1), cluster_diff_norm)
     phi_list = phi_list_sum / (mask_nums.unsqueeze(1) * torch.log(mask_nums.unsqueeze(1) + temp_lambda))
-    phi_list = torch.clip(phi_list * 10, min=0.5, max=1.0)  # why x10
-    phi_list = phi_list.detach()  # 方差
+    phi_list = torch.clip(phi_list * 10, min=0.5, max=1.0)
+    phi_list = phi_list.detach()  # variance
 
     dist = torch.exp(torch.matmul(features, u_list.T) / phi_list.T)  # [N_pix, N_cluster]
     dist_sum = dist.sum(dim=1, keepdim=True)
-    # 计算最终的 ProtoNCE loss
+    # Final ProtoNCE loss
     ProtoNCE = -torch.sum(torch.log(dist[torch.arange(features.shape[0]), masks].unsqueeze(1) / (dist_sum + 1e-9)))
 
     return ProtoNCE

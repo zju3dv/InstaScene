@@ -112,9 +112,9 @@ class OptimizationParams(ParamGroup):
         self.opacity_cull = 0.05
 
         # seg
-        self.lambda_singview_contras = 2.5e-6
-        self.lambda_multiview_contras = 2.5e-6
-        self.lambda_3D_contras = 1e-6
+        self.lambda_singview_contras = 1e-6
+        self.lambda_multiview_contras = 1e-6
+        self.lambda_3D_contras = 2.5e-6
 
         self.densification_interval = 100
         self.opacity_reset_interval = 3000
