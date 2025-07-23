@@ -10,7 +10,8 @@ from utils.contrastive_utils import *
 from utils.general_mesh_utils import *
 from utils.graphics_utils import focal2fov
 from utils.image_utils import crop_image
-from utils.visual_instance_utils import *
+
+from tqdm import tqdm
 
 from vis_utils.color_utils import generate_semantic_colors
 
@@ -410,6 +411,7 @@ class SegSplatting:
 
 
 if __name__ == "__main__":
+    # python train_semantic.py -s data/3dovs/bed -m train_semanticgs --use_seg_feature --iterations 10000
     parser = ArgumentParser(description="Training script parameters")
     lp = ModelParams(parser)
     op = OptimizationParams(parser)
@@ -420,5 +422,4 @@ if __name__ == "__main__":
     segsplat.args = args
     segsplat.RobustSemanticPriors()
     segsplat.train_segfeat()
-    segsplat.export_segment_results(0, use_hdbscan=True)
     print("\nTraining complete.")

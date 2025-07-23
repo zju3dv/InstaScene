@@ -59,16 +59,16 @@ class CONFIG:
 
     # ckpt TODO: load from gui window.
 
-    ply_path = "/home/bytedance/Projects/3DGS/InstaScene/data/lerf/figurines/point_cloud.ply"
+    ply_path = "/home/bytedance/Projects/3DGS/InstaScene/data/3dovs/bed/point_cloud.ply"
     interactive_note = "kitchen"
 
     use_pseudo_normal = True
 
-    use_colmap_camera = False
-    source_path = "/home/bytedance/Projects/3DGS/InstaScene/data/lerf/figurines"
+    use_colmap_camera = True
+    source_path = "/home/bytedance/Projects/3DGS/InstaScene/data/3dovs/bed"
     only_load_camera = True
-    resolution = 2
-    downscale_ratio = 2
+    resolution = 1
+    downscale_ratio = 1
     data_device = "cpu"
 
 
@@ -583,15 +583,6 @@ class GaussianSplattingGUI:
                 rgb_score[click_score_map] = img[click_score_map] * 0.3 + click_color * 0.7
 
             if self.segment3d_flag or self.delete3d_flag:
-                """ gaussian point cloud core params
-                self.engine._xyz            # (N, 3)
-                self.engine._features_dc    # (N, 1, 3)
-                self.engine._features_rest  # (N, 15, 3)
-                self.engine._opacity        # (N, 1)
-                self.engine._scaling        # (N, 3)
-                self.engine._rotation       # (N, 4)
-                self.engine._objects_dc     # (N, 1, 16)
-                """
                 feat_pts = self.engine._seg_feature.squeeze()
                 feat_pts /= (torch.norm(feat_pts, dim=-1, keepdim=True) + 1e-6)
                 score_pts = feat_pts @ self.chosen_feature
@@ -605,14 +596,7 @@ class GaussianSplattingGUI:
                     pcld = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(pcld_points))
                     labels = np.array(pcld.cluster_dbscan(eps=0.15, min_points=10)) + 1
                     label_lists, labels_cnts = np.unique(labels, return_counts=True)
-                    '''
-                    pclds = []
-                    for label in label_lists:
-                        pcld_cluster = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(pcld_points[labels == label]))
-                        pcld_cluster.paint_uniform_color(np.random.random(3))
-                        pclds.append(pcld_cluster)
-                    o3d.visualization.draw_geometries(pclds)
-                    '''
+
                     suitable_label = label_lists[labels_cnts.argsort()[-1]]
                     score_pts_indices = np.where(score_pts_binary.detach().cpu().numpy())[0][labels == suitable_label]
                     score_pts_binary = torch.zeros_like(score_pts_binary, dtype=torch.bool)

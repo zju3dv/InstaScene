@@ -120,7 +120,9 @@ class GaussianModel:
 
     @property
     def get_seg_feature(self):
-        return self._seg_feature / (torch.norm(self._seg_feature, p=2, dim=1, keepdim=True) + 1e-6)
+        if self._seg_feature is not None:
+            return self._seg_feature / (torch.norm(self._seg_feature, p=2, dim=1, keepdim=True) + 1e-6)
+        return self._seg_feature
 
     @property
     def get_features(self):
@@ -215,7 +217,6 @@ class GaussianModel:
         self.denom = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
 
         if self.use_seg_feature and optim_seg_feature:
-            print("\n### Only optimizing segment features ###")
             if self._seg_feature is None:
                 # 开始feature训练的时候，往模型中加入language feature参数
                 seg_feature = torch.rand((self._xyz.shape[0], self.seg_feat_dim), device="cuda")  # TODO: 只有3维
@@ -284,20 +285,24 @@ class GaussianModel:
                 l.append('segfeat_{}'.format(i))
         return l
 
-    def save_ply(self, path):
-        print("### Saving PointCloud Params ###")
-
+    def save_ply(self, path, crop_mask=None):
         mkdir_p(os.path.dirname(path))
 
-        xyz = self._xyz.detach().cpu().numpy()
+        if crop_mask is not None:
+            valid_mask = crop_mask.detach().cpu()
+        else:
+            valid_mask = np.ones((len(self.get_xyz)), dtype=bool)
+
+        xyz = self._xyz.detach().cpu().numpy()[valid_mask]
         normals = np.zeros_like(xyz)
-        f_dc = self._features_dc.detach().transpose(1, 2).flatten(start_dim=1).contiguous().cpu().numpy()
-        f_rest = self._features_rest.detach().transpose(1, 2).flatten(start_dim=1).contiguous().cpu().numpy()
-        opacities = self._opacity.detach().cpu().numpy()
-        scale = self._scaling.detach().cpu().numpy()
-        rotation = self._rotation.detach().cpu().numpy()
+        f_dc = self._features_dc.detach().transpose(1, 2).flatten(start_dim=1).contiguous().cpu().numpy()[valid_mask]
+        f_rest = self._features_rest.detach().transpose(1, 2).flatten(start_dim=1).contiguous().cpu().numpy()[
+            valid_mask]
+        opacities = self._opacity.detach().cpu().numpy()[valid_mask]
+        scale = self._scaling.detach().cpu().numpy()[valid_mask]
+        rotation = self._rotation.detach().cpu().numpy()[valid_mask]
         if self._seg_feature is not None:
-            seg_feat = self._seg_feature.detach().cpu().numpy()
+            seg_feat = self._seg_feature.detach().cpu().numpy()[valid_mask]
 
         dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
 
@@ -462,21 +467,33 @@ class GaussianModel:
                 optimizable_tensors[group["name"]] = group["params"][0]
         return optimizable_tensors
 
-    def prune_points(self, mask):
+    def prune_points(self, mask, optimizer_type=True):
         valid_points_mask = ~mask
-        optimizable_tensors = self._prune_optimizer(valid_points_mask)
 
-        self._xyz = optimizable_tensors["xyz"]
-        self._features_dc = optimizable_tensors["f_dc"]
-        self._features_rest = optimizable_tensors["f_rest"]
-        self._opacity = optimizable_tensors["opacity"]
-        self._scaling = optimizable_tensors["scaling"]
-        self._rotation = optimizable_tensors["rotation"]
+        if optimizer_type:
+            optimizable_tensors = self._prune_optimizer(valid_points_mask)
 
-        self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
+            self._xyz = optimizable_tensors["xyz"]
+            self._features_dc = optimizable_tensors["f_dc"]
+            self._features_rest = optimizable_tensors["f_rest"]
+            self._opacity = optimizable_tensors["opacity"]
+            self._scaling = optimizable_tensors["scaling"]
+            self._rotation = optimizable_tensors["rotation"]
 
-        self.denom = self.denom[valid_points_mask]
-        self.max_radii2D = self.max_radii2D[valid_points_mask]
+            self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
+
+            self.denom = self.denom[valid_points_mask]
+            self.max_radii2D = self.max_radii2D[valid_points_mask]
+        else:
+            self._xyz = self._xyz[valid_points_mask]
+            self._features_dc = self._features_dc[valid_points_mask]
+            self._features_rest = self._features_rest[valid_points_mask]
+            self._opacity = self._opacity[valid_points_mask]
+            self._scaling = self._scaling[valid_points_mask]
+            self._rotation = self._rotation[valid_points_mask]
+
+            if self._seg_feature is not None:
+                self._seg_feature = self._seg_feature[valid_points_mask]
 
     def cat_tensors_to_optimizer(self, tensors_dict):
         optimizable_tensors = {}

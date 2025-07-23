@@ -17,4 +17,4 @@ pyrender
 
 -e submodules/diff-surfel-rasterization
 submodules/simple-knn
-submodules/raytracing #
+# submodules/raytracing #

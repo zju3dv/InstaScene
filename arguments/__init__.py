@@ -114,12 +114,8 @@ class OptimizationParams(ParamGroup):
 
         # seg
         self.lambda_singview_contras = 2.5e-6
-        self.lambda_feat_norm = 0  # 1
-        self.lambda_multiview_contras = 2.5e-6  # 0.001
+        self.lambda_multiview_contras = 2.5e-6
         self.lambda_3D_contras = 1e-6
-        self.lambda_3D_consist = 0.1  # 3d feat consist
-        # 根据3D mask找到每个3D mask属于的点云，再自动聚类，然后使用contrastive-loss
-        self.lambda_3D_clustering_filter = 0  # 5e-6
 
         self.densification_interval = 100
         self.opacity_reset_interval = 3000
@@ -127,7 +123,7 @@ class OptimizationParams(ParamGroup):
         self.densify_until_iter = 15_000
         self.densify_grad_threshold = 0.0002
 
-        self.gram_feat_3d = True
+        self.gram_feat_3d = False
 
         super().__init__(parser, "Optimization Parameters")
 

@@ -38,21 +38,7 @@ class GausCluster:
                                                          save_dir, self.debug)
         ## Cluster the Mask's Gaussian Tracker
         update_mask_assocation = iterative_clustering(init_mask_assocation, self.clustering_args)
-        '''
-        import open3d as o3d
-        scene_points = self.gaussian.get_xyz.cpu().numpy()
-        pclds = None
-        for node in update_mask_assocation["nodes"]:
-            pcld_ids = node.point_ids
-            pcld = o3d.geometry.PointCloud(
-                o3d.utility.Vector3dVector(scene_points[np.array(list(pcld_ids))]))
-            pcld.paint_uniform_color(np.random.rand(3))
-            if pclds is None:
-                pclds = pcld
-            else:
-                pclds += pcld
-        o3d.visualization.draw_geometries([pclds])
-        '''
+
         ## Use DBScan to Filter Noisy Points from maskclustering
         final_mask_assocation = post_process(self.gaussian, update_mask_assocation, self.clustering_args)
 
