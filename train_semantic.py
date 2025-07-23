@@ -71,7 +71,10 @@ class SegSplatting:
     def train_segfeat(self):
         print("\n\033[91mRunning Spatial Contrastive Learning... \033[0m")
 
-        # 初始化feature
+        if os.path.exists(
+                os.path.join(self.model_path, "point_cloud/iteration_{}".format(self.optimparams.iterations))):
+            return
+
         self.gaussians.training_setup(self.optimparams)
 
         bg_color = [1, 1, 1] if self.modelparams.white_background else [0, 0, 0]
@@ -82,7 +85,6 @@ class SegSplatting:
         iter_end = torch.cuda.Event(enable_timing=True)
 
         viewpoint_stack = None
-        ema_loss_for_log = 0.0
         progress_bar = tqdm(range(first_iter, self.optimparams.iterations), desc="Training progress")
         first_iter += 1
 
@@ -428,5 +430,5 @@ if __name__ == "__main__":
     segsplat = SegSplatting(lp.extract(args), op.extract(args), pp.extract(args))
     segsplat.args = args
     segsplat.RobustSemanticPriors()
-    # segsplat.train_segfeat()
+    segsplat.train_segfeat()
     print("\nTraining complete.")
