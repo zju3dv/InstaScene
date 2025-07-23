@@ -8,8 +8,6 @@ from gaussian_renderer import render
 from scene import Scene, GaussianModel
 from utils.contrastive_utils import *
 from utils.general_mesh_utils import *
-from utils.graphics_utils import focal2fov
-from utils.image_utils import crop_image
 
 from tqdm import tqdm
 
@@ -430,5 +428,5 @@ if __name__ == "__main__":
     segsplat = SegSplatting(lp.extract(args), op.extract(args), pp.extract(args))
     segsplat.args = args
     segsplat.RobustSemanticPriors()
-    segsplat.train_segfeat()
+    # segsplat.train_segfeat()
     print("\nTraining complete.")

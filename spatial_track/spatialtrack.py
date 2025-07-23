@@ -21,9 +21,9 @@ class GausCluster:
         self.viewcams = viewcams
 
         clustering_args = {
-            "mask_visible_threshold": 0.5,  #
-            "undersegment_filter_threshold": 0.4,
-            "contained_threshold": 0.6,
+            "mask_visible_threshold": 0.7,  # if 70% mask is invisible
+            "undersegment_filter_threshold": 0.3,  # large,robust but sparse
+            "contained_threshold": 0.8,
             "view_consensus_threshold": 0.9,
             "point_filter_threshold": 0.5
         }

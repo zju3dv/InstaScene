@@ -18,7 +18,7 @@ def get_boundary(mask, kernel_size_erode=5):
     return mask > 0
 
 
-data_dir = "/home/bytedance/Projects/3DGS/InstaScene/data/lerf/dozer_nerfgun"
+data_dir = "/home/bytedance/Projects/3DGS/InstaScene/data/zipnerf/nyc"
 show_text = True
 show_boundary = True
 only_segmap = False

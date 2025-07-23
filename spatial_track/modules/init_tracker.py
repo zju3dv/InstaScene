@@ -63,7 +63,7 @@ def get_segmap_gaussians(gaussian: GaussianModel, view: Camera):
     return mask_info, list(frame_gaussian_ids)
 
 
-def compute_mask_visible_frame(global_gaussian_in_mask_matrix, gaussian_in_frame_matrix, threshold=0.2):
+def compute_mask_visible_frame(global_gaussian_in_mask_matrix, gaussian_in_frame_matrix, threshold=0.0):
     '''
     50% points occurs in frame -> visible
     Args:
@@ -81,7 +81,7 @@ def compute_mask_visible_frame(global_gaussian_in_mask_matrix, gaussian_in_frame
     mask_point_counts = np.array(A.sum(axis=0)).ravel() + 1e-6  # 防止除以0
 
     intersection_counts = intersection_counts.tocoo()
-    visible_mask = (intersection_counts.data / mask_point_counts[intersection_counts.row]) > threshold  # 30%点在该Frame可见
+    visible_mask = (intersection_counts.data / mask_point_counts[intersection_counts.row]) > threshold
 
     result = csr_matrix(
         (np.ones(visible_mask.sum(), dtype=bool),
@@ -101,7 +101,6 @@ def construct_mask2gs_tracker(gaussian: GaussianModel, viewcams: List[Camera], c
 
     # gaussian point in each frame's correspond mask
     gaussian_in_frame_maskid_matrix = np.zeros((len(gaussian.get_xyz), len(viewcams)), dtype=np.uint16)
-
     gaussian_in_frame_matrix = np.zeros((len(gaussian.get_xyz), len(viewcams)), dtype=bool)
     global_frame_mask_list = []
     mask_gaussian_pclds = {}
@@ -226,16 +225,16 @@ def judge_single_mask(gaussian_in_mask_matrix,
         if 0 in overlap_mask_ids:
             invalid_indice = np.where(overlap_mask_ids == 0)[0]
             invalid_gaussian_cnts = overlap_mask_cnts[invalid_indice]
-            if invalid_gaussian_cnts / overlap_mask_cnts.sum() > clustering_args.mask_visible_threshold:  # 0.5
+            if invalid_gaussian_cnts / overlap_mask_cnts.sum() > clustering_args.mask_visible_threshold:  # 0.3
                 continue
             # clear zero
             overlap_mask_ids = np.delete(overlap_mask_ids, invalid_indice)
             overlap_mask_cnts = np.delete(overlap_mask_cnts, invalid_indice)
 
-        visible_num += 1
-
         if len(overlap_mask_ids) == 0:
             continue
+
+        visible_num += 1
 
         contained_ratio = overlap_mask_cnts[0] / overlap_mask_cnts.sum()
         if contained_ratio > clustering_args.contained_threshold:  # check max overlap mask
