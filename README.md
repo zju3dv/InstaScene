@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/3837634c-4ef9-4078-87ab-68a1c3e4faf9
 ![Pipeline](assets/pipeline.png)
 
 ## Installation
-
+- [x] Installation of Scene Decomposition.
 ```shell
 conda create -n instascene python=3.9 -y
 conda activate instascene 
@@ -49,7 +49,7 @@ Manually
 download [CropFormer checkpoint](https://huggingface.co/datasets/qqlu1992/Adobe_EntitySeg/blob/main/CropFormer_model/Entity_Segmentation/CropFormer_hornet_3x/CropFormer_hornet_3x_03823a.pth)
 into `semantic_modules/CropFormer/ckpts`
 
-[] Installation of in-situ generation.
+- [ ] Installation of in-situ generation.
 
 ## Data Preprocessing
 
