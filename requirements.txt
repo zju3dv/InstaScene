@@ -1,0 +1,20 @@
+plyfile
+tqdm
+dearpygui==1.11.1
+opencv-python
+joblib
+numpy==1.26.4
+open3d==0.16.0
+matplotlib
+trimesh
+lpips
+e3nn
+einops
+einsum
+kornia
+pyrender
+# carvekit
+
+-e submodules/diff-surfel-rasterization
+submodules/simple-knn
+# submodules/raytracing #
