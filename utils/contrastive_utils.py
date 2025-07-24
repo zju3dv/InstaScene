@@ -15,7 +15,8 @@ from PIL import Image
 from sklearn.decomposition import PCA
 
 
-def contrastive_loss(features, masks, predef_u_list=None, min_pixnum=0, temp_lambda=1000):
+def contrastive_loss(features, masks, predef_u_list=None, min_pixnum=0, temp_lambda=1000,
+                     consider_negative=False):
     '''
     :param features:
     :param masks:
@@ -24,13 +25,18 @@ def contrastive_loss(features, masks, predef_u_list=None, min_pixnum=0, temp_lam
     :param temp_lambda:
     :return:
     '''
-    valid_semantic_idx = masks > 0  # note: no consider negative masks
+    if not consider_negative:
+        valid_semantic_idx = masks > 0  # note:已经移除0了
+    else:  # 考虑0标签
+        valid_semantic_idx = torch.ones_like(masks, dtype=torch.bool).cuda()
+
     mask_ids, mask_nums = torch.unique(masks, return_counts=True)
     valid_mask_ids = mask_ids[mask_nums > min_pixnum]
     valid_semantic_idx = valid_semantic_idx & torch.isin(masks, valid_mask_ids)
 
     masks = masks[valid_semantic_idx].type(torch.int64)
-    masks = masks - 1  # from zero
+    if not consider_negative:
+        masks = masks - 1  # from zero
     features = features[valid_semantic_idx, :]  # N,16
     features = features / (torch.norm(features, dim=-1, keepdim=True) + 1e-9).detach()
 
@@ -117,4 +123,3 @@ def mask_to_rgb(mask):
     norm = mcolors.Normalize(vmin=0, vmax=num_classes - 1)
     colored_segmentation = colors(norm(mask_image))
     return np.uint8(colored_segmentation[..., :3] * 255.0)
-

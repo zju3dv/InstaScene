@@ -11,11 +11,12 @@ from typing import List
 from spatial_track.modules.init_tracker import *
 from spatial_track.modules.iterative_cluster import iterative_clustering
 from spatial_track.modules.post_process import post_process
+from spatial_track.modules.remedy_undersegment import remedy_undersegment
 
 
 ### Refer from https://github.com/PKU-EPIC/MaskClustering with Gaussian-based Tracker ###
 class GausCluster:
-    def __init__(self, gaussian: GaussianModel, viewcams: List[Camera], debug=False):
+    def __init__(self, gaussian: GaussianModel, viewcams: List[Camera], debug=True):
         # 构建init node
         self.gaussian = gaussian
         self.viewcams = viewcams
@@ -41,6 +42,9 @@ class GausCluster:
 
         ## Use DBScan to Filter Noisy Points from maskclustering
         final_mask_assocation = post_process(self.gaussian, update_mask_assocation, self.clustering_args)
+
+        ## Remedy error-classified undersegment masks
+        remedy_mask_assocation = remedy_undersegment(self.gaussian, self.viewcams, final_mask_assocation)
 
         self.export(final_mask_assocation, save_dir=save_dir)
 
