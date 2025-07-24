@@ -107,7 +107,6 @@ class SegSplatting:
 
             singleview_contra_loss = 0
             mask_type_cnts = 0
-            # ! TODO: Current Abandon the background supervision, Update the undersegment remedy
             if self.gaussians.class_feat is not None:
                 segmap_lists = [viewpoint_cam.segmap.squeeze().cuda(), viewpoint_cam.sorted_segmap.squeeze().cuda()]
             else:
@@ -431,7 +430,6 @@ class SegSplatting:
 
 
 if __name__ == "__main__":
-    # python train_semantic.py -s data/3dovs/bed -m train_semanticgs --use_seg_feature --iterations 10000 --load_filter_segmap
     parser = ArgumentParser(description="Training script parameters")
     lp = ModelParams(parser)
     op = OptimizationParams(parser)
@@ -444,8 +442,3 @@ if __name__ == "__main__":
     segsplat.train_segfeat()
     print("\nTraining complete.")
 
-    '''
-    python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs_negative 
-        --use_seg_feature --iterations 10000 
-        --load_filter_segmap --consider_negative_labels
-    '''
