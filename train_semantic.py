@@ -440,13 +440,11 @@ if __name__ == "__main__":
     segsplat = SegSplatting(lp.extract(args), op.extract(args), pp.extract(args))
     segsplat.args = args
     segsplat.RobustSemanticPriors()
-    # segsplat.train_segfeat()
+    segsplat.train_segfeat()
     print("\nTraining complete.")
 
     '''
-    python train_semantic.py -s data/360_v2/counter/ -m train_semanticgs_grad \
-        --use_seg_feature --iterations 10000 \
-        --load_filter_segmap --consider_negative_labels \
-        --preload_robust_semantic output/360_v2/counter/train_semanticgs/semantic_association/ \
-        --gram_feat_3d \
+    python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs_negative 
+        --use_seg_feature --iterations 10000 
+        --load_filter_segmap --consider_negative_labels
     '''

@@ -123,8 +123,12 @@ We train the model on a NVIDIA Tesla A100 GPU (40GB) with 10,000 iterations for 
 - Reduce the GPU & Speed the time with `--sample_batchsize 8 * 1024` or `-r 2`.
 - Use `--gram_feat_3d` for a more robust feature field in complex scenes.
 - It's normal to get stuck at the `DBScan Filter Stage`, since the backgrount gaussian points may be divided into multi-regions.
+- Use `--consider_negative_labels` to suppress floaters during background segmentation.
 ```bash
-python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs --use_seg_feature --iterations 10000 --load_filter_segmap
+python train_semantic.py -s data/lerf/waldo_kitchen \
+                         -m train_semanticgs \
+                         --use_seg_feature --iterations 10000 \
+                         --load_filter_segmap --consider_negative_labels
 ```
 
 After completing the training, we provide a GUI modified from [Omniseg3D](https://github.com/THU-luvision/OmniSeg3D) for real-time ineractive segmentation.
