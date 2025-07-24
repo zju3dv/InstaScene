@@ -45,6 +45,9 @@ class SegSplatting:
         self.gausclustering = GausCluster(self.gaussians, viewpoint_stack)
 
         if not os.path.exists(os.path.join(segment_save_dir, "output_dict.npy")):
+            sam_dir = os.path.join(self.data_dir, "sam/mask_filtered")
+            if os.path.exists(sam_dir):
+                os.system("rm -rf {}".format(os.path.join(self.data_dir, "sam/mask_*")))
             self.gausclustering.maskclustering(segment_save_dir)  # TODO: cluster init in SFM ?
 
         self.robust_semantic_priors = np.load(os.path.join(segment_save_dir, "output_dict.npy"),
