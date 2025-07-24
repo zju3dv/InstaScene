@@ -115,14 +115,14 @@ class OptimizationParams(ParamGroup):
         self.lambda_singview_contras = 1e-6
         self.lambda_multiview_contras = 1e-6
         self.lambda_3D_contras = 2.5e-6
+        self.gram_feat_3d = False
+        self.consider_negative_labels = False
 
         self.densification_interval = 100
         self.opacity_reset_interval = 3000
         self.densify_from_iter = 500
         self.densify_until_iter = 15_000
         self.densify_grad_threshold = 0.0002
-
-        self.gram_feat_3d = False
 
         super().__init__(parser, "Optimization Parameters")
 

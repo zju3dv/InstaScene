@@ -52,6 +52,7 @@ class SegSplatting:
 
         self.robust_semantic_priors = np.load(os.path.join(segment_save_dir, "output_dict.npy"),
                                               allow_pickle=True).item()
+
         self.Seg3D_masks = self.robust_semantic_priors["mask_3d_labels"]
         self.Seg3D_labels = torch.argmax(torch.tensor(self.Seg3D_masks, dtype=torch.int16), dim=1).cuda()
 
@@ -113,7 +114,12 @@ class SegSplatting:
                 segmap_lists = [viewpoint_cam.segmap.squeeze().cuda()]  # mask with undersegment filter
             for gt_segmap in segmap_lists:
                 batchsize = self.optimparams.sample_batchsize
+
+                # single-view consider negative
                 valid_labels_mask = gt_segmap > 0
+                if mask_type_cnts == 0 and self.optimparams.consider_negative_labels:
+                    valid_labels_mask = torch.ones_like(gt_segmap, dtype=torch.bool).cuda()
+
                 # ! Note: May all invalid
                 if valid_labels_mask.sum() > 0:
                     valid_seg_feature = seg_feature[:, valid_labels_mask]
@@ -129,6 +135,7 @@ class SegSplatting:
                         sampled_segfeat, sampled_labels,
                         # mv can use pre-defined feat
                         predef_u_list=self.gaussians.class_feat if mask_type_cnts == 1 else None,
+                        consider_negative=(mask_type_cnts == 0 and self.optimparams.consider_negative_labels),
                     ) * self.optimparams.lambda_singview_contras * single_view_weight
                 else:
                     print("Invalid View: ", viewpoint_cam.image_name)
@@ -438,8 +445,7 @@ if __name__ == "__main__":
     print("\nTraining complete.")
 
     '''
-    python train_semantic.py -s data/360_v2/counter/ -m train_semanticgs_grad \
-        --use_seg_feature --iterations 10000 --load_filter_segmap \
-        --preload_robust_semantic output/360_v2/counter/train_semanticgs/semantic_association/ \
-        --gram_feat_3d \
+    python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs_negative 
+        --use_seg_feature --iterations 10000 
+        --load_filter_segmap --consider_negative_labels
     '''
