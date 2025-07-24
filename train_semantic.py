@@ -61,7 +61,7 @@ class SegSplatting:
 
         # Filter undersegment
         self.undersegment_masks = self.robust_semantic_priors["underseg_mask_ids"]
-        ## TODO: fix error undersegment -> 3D mask tracking
+        ## ! TODO: fix error undersegment -> 3D mask tracking
         if not os.path.exists(os.path.join(self.data_dir, "sam/mask_filtered")):
             self.gausclustering.filter_undersegment_mask(os.path.join(self.data_dir, "sam/mask"),
                                                          self.undersegment_masks)
@@ -106,6 +106,7 @@ class SegSplatting:
 
             singleview_contra_loss = 0
             mask_type_cnts = 0
+            # ! TODO: Current Abandon the background supervision, Update the undersegment remedy
             if self.gaussians.class_feat is not None:
                 segmap_lists = [viewpoint_cam.segmap.squeeze().cuda(), viewpoint_cam.sorted_segmap.squeeze().cuda()]
             else:
