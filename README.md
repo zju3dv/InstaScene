@@ -146,7 +146,7 @@ python semantic_gui.py \
 https://github.com/user-attachments/assets/aca0ae53-744e-4037-99b2-197917953303
 
 ## ToDos
-
+🔥 Feel free to raise any requests, including support for additional datasets or broader applications of segmentation~
 - [x] Release project page and paper.
 - [x] Release scene decomposition code.
 - [ ] Release in-situ generation code.
