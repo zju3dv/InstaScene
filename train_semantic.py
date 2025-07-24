@@ -432,3 +432,10 @@ if __name__ == "__main__":
     segsplat.RobustSemanticPriors()
     segsplat.train_segfeat()
     print("\nTraining complete.")
+
+    '''
+    python train_semantic.py -s data/360_v2/counter/ -m train_semanticgs_grad \
+        --use_seg_feature --iterations 10000 --load_filter_segmap \
+        --preload_robust_semantic output/360_v2/counter/train_semanticgs/semantic_association/ \
+        --gram_feat_3d \
+    '''

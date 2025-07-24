@@ -171,7 +171,7 @@ class GaussianModel:
                 for i in range(Seg3D_masks.shape[1]):
                     curr_mask = Seg3D_masks[:, i]
                     gs_ids = torch.from_numpy(np.where(curr_mask)[0]).cuda()
-                    seg_feature[gs_ids] = init_feat[i]  # torch.rand((self.seg_feat_dim)).cuda()
+                    seg_feature[gs_ids] = init_feat[i]
 
                 self.class_feat = init_feat
 
@@ -216,8 +216,7 @@ class GaussianModel:
 
         if self.use_seg_feature and optim_seg_feature:
             if self._seg_feature is None:
-                # 开始feature训练的时候，往模型中加入language feature参数
-                seg_feature = torch.rand((self._xyz.shape[0], self.seg_feat_dim), device="cuda")  # TODO: 只有3维
+                seg_feature = torch.rand((self._xyz.shape[0], self.seg_feat_dim), device="cuda")
                 seg_feature = seg_feature / seg_feature.norm(dim=1, keepdim=True)
                 self._seg_feature = nn.Parameter(seg_feature.requires_grad_(True))
 
@@ -376,7 +375,6 @@ class GaussianModel:
         features_dc[:, 1, 0] = np.asarray(plydata.elements[0]["f_dc_1"])
         features_dc[:, 2, 0] = np.asarray(plydata.elements[0]["f_dc_2"])
 
-        # 有可能是0阶
         extra_f_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("f_rest_")]
         extra_f_names = sorted(extra_f_names, key=lambda x: int(x.split('_')[-1]))
         assert len(extra_f_names) == 3 * (self.max_sh_degree + 1) ** 2 - 3

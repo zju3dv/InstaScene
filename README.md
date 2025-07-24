@@ -54,7 +54,7 @@ into `semantic_modules/CropFormer/ckpts`
 
 ## Data Preprocessing
 
-Please follow the steps below to process your custom dataset, or directly download [our preprocessed datasets]().
+Please follow the steps below to process your custom dataset, or directly download [our preprocessed datasets](https://drive.google.com/file/d/1u1VSPch9lfnstGpnzEikiso6w-w2wJ6t/view?usp=sharing).
 
 ### 1. Run instance-level segmentation.
 
@@ -127,8 +127,8 @@ We train the model on a NVIDIA Tesla A100 GPU (40GB) with 10,000 iterations for 
 python train_semantic.py -s data/lerf/waldo_kitchen -m train_semanticgs --use_seg_feature --iterations 10000 --load_filter_segmap
 ```
 
-After completing the training, we provide a GUI modified from [Omniseg3D]() for real-time ineractive segmentation.
-The `point_cloud.ply` in [our preprocessed datasets]() already has pretrained semantic features.
+After completing the training, we provide a GUI modified from [Omniseg3D](https://github.com/THU-luvision/OmniSeg3D) for real-time ineractive segmentation.
+The `point_cloud.ply` in [our preprocessed datasets](https://drive.google.com/file/d/1u1VSPch9lfnstGpnzEikiso6w-w2wJ6t/view?usp=sharing) already has pretrained semantic features.
 ```bash
 python semantic_gui.py \
   --ply_path data/lerf/waldo_kitchen/point_cloud.ply \

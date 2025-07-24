@@ -124,7 +124,7 @@ def dbscan_process(pcld, point_ids, DBSCAN_THRESHOLD=0.1, min_points=4):
     '''
         Following OVIR-3D, we use DBSCAN to split the disconnected point cloud into different objects.
     '''
-    # TODO: 这里可以用feature来替代
+    # TODO: add clip feat?
     labels = np.array(pcld.cluster_dbscan(eps=DBSCAN_THRESHOLD, min_points=min_points)) + 1  # -1 for noise
     count = np.bincount(labels)
 

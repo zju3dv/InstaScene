@@ -18,7 +18,7 @@ def update_graph(nodes, observer_num_threshold, connect_threshold):
     '''
     node_visible_frames = torch.stack([node.visible_frame for node in nodes], dim=0)
     node_contained_masks = torch.stack([node.contained_mask for node in nodes], dim=0)
-    # 两者都可见
+
     observer_nums = torch.matmul(node_visible_frames, node_visible_frames.transpose(0,
                                                                                     1))  # M[i,j] stores the number of frames that node i and node j both appear
     supporter_nums = torch.matmul(node_contained_masks, node_contained_masks.transpose(0,
@@ -30,7 +30,7 @@ def update_graph(nodes, observer_num_threshold, connect_threshold):
     disconnect = disconnect | (
             observer_nums < observer_num_threshold)  # node pairs with less than observer_num_threshold observers are disconnected
 
-    A = view_concensus_rate >= connect_threshold  # 包含关系，连接
+    A = view_concensus_rate >= connect_threshold
     A = A & ~disconnect  # A：
     A = A.cpu().numpy()
 
@@ -48,8 +48,6 @@ def iterative_clustering(init_mask_assocation, clustering_args):
                              clustering_args.view_consensus_threshold)  # connect_threshold: 0.9
         nodes = cluster_into_new_nodes(iterate_id + 1, nodes, graph)
         torch.cuda.empty_cache()
-
-    # print("### Nodes from {0} to {1} ###".format(len(init_mask_assocation["nodes"]), len(nodes)))
 
     init_mask_assocation["nodes"] = nodes
 

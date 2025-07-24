@@ -4,10 +4,7 @@ import torch
 import open3d as o3d
 from gaussian_renderer import render
 import numpy as np
-from PIL import Image
 import cv2
-from sklearn.decomposition import PCA
-import matplotlib
 import os
 
 from argparse import ArgumentParser
@@ -130,7 +127,7 @@ class OrbitCamera:
         res[:3, :3] = self.rot.as_matrix()
 
         scale_mat = np.eye(4)
-        scale_mat[0, 0] = self.scale_f  # why apply scale ratio to rotation matrix? It's confusing.
+        scale_mat[0, 0] = self.scale_f
         scale_mat[1, 1] = self.scale_f
         scale_mat[2, 2] = self.scale_f
 
@@ -175,7 +172,6 @@ class GaussianSplattingGUI:
     def __init__(self, opt, gaussian_model: GaussianModel) -> None:
         self.opt = opt
 
-        # 加载scene
         self.known_camera_mode = False
         if opt.use_colmap_camera:
             scene_info = sceneLoadTypeCallbacks["Colmap"](opt.source_path, "images", False)
@@ -214,37 +210,6 @@ class GaussianSplattingGUI:
 
         self.engine.load_ply(self.opt.ply_path)
 
-        '''
-        from scipy.spatial.transform import Rotation
-        rotation_matrix_4x4 = np.eye(4)
-        rotation_degrees = np.loadtxt(
-            "/home/bytedance/Projects/Datasets/ZipNeRF/nyc/kitchen_dsfm/rotation_angles.txt")  # 需要提前准备
-        # 将旋转角度转换为旋转矩阵
-        rotation_matrix = Rotation.from_euler('xyz', rotation_degrees, degrees=True).as_matrix()
-        # rotation_matrix[:, 1:3] *= -1
-        rotation_matrix_4x4[:3, :3] = rotation_matrix
-        rotation_matrix_4x4 = torch.from_numpy(rotation_matrix_4x4).cuda()
-        self.engine._xyz = self.engine._xyz @ rotation_matrix_4x4[:3, :3].float().T
-
-        quat_r = R.from_matrix(rotation_matrix).as_quat()  # 得到 [x, y, z, w] 四元数
-        quat_r = quat_r[[3, 0, 1, 2]]  # 转换为 [w, x, y, z]
-
-        def quaternion_multiply(q1, q2):
-            w1, x1, y1, z1 = q1[..., 0], q1[..., 1], q1[..., 2], q1[..., 3]
-            w2, x2, y2, z2 = q2[..., 0], q2[..., 1], q2[..., 2], q2[..., 3]
-
-            w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
-            x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
-            y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
-            z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
-
-            return torch.stack((w, x, y, z), -1)
-
-        # 假设你的四元数数组为 ellipsoid_quats，shape 为 [1000, 4]
-        # 旋转四元数 quat_r, shape 为 [4]
-        self.engine._rotation = quaternion_multiply(torch.from_numpy(quat_r).float().cuda(),
-                                                    self.engine.get_rotation)
-        '''
 
         self.do_pca()  # calculate self.proj_mat
         self.load_model = True
@@ -311,7 +276,7 @@ class GaussianSplattingGUI:
 
         dpg.set_primary_window("_primary_window", True)
 
-        # === Callback 函数 === #
+
         def callback_depth(sender, app_data):
             self.img_mode = (self.img_mode + 1) % 2
 
@@ -596,7 +561,6 @@ class GaussianSplattingGUI:
                 score_pts = (score_pts + 1.0) / 2
                 score_pts_binary = (score_pts > dpg.get_value('_ScoreThres')).sum(1) > 0
 
-                # 是否使用DBScan
                 if True:
                     print("\033[96m### Filter Noisy with DBscan ###\033[0m")
                     pcld_points = self.engine.get_xyz[score_pts_binary].detach().cpu().numpy()

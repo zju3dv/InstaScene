@@ -43,23 +43,7 @@ def get_segmap_gaussians(gaussian: GaussianModel, view: Camera):
             continue
 
         mask_info[mask_id] = set(gaus_ids[valid_mask].tolist())
-    '''
-    import open3d as o3d
-    scene_points = gaussian.get_xyz
-    pclds = None
-    for mask_id in mask_info:
-        pcld_ids = mask_info[mask_id]
-        pcld = o3d.geometry.PointCloud(
-            o3d.utility.Vector3dVector(scene_points.cpu().numpy()[np.array(list(pcld_ids))]))
-        pcld.paint_uniform_color(np.random.rand(3))
-        if pclds is None:
-            pclds = pcld
-        else:
-            pclds += pcld
-    # o3d.visualization.draw_geometries(pclds)
-    view.view_o3d([pclds])
-    o3d.io.write_point_cloud("t1.ply", pclds)
-    '''
+
     return mask_info, list(frame_gaussian_ids)
 
 
@@ -76,9 +60,9 @@ def compute_mask_visible_frame(global_gaussian_in_mask_matrix, gaussian_in_frame
     A = csr_matrix(global_gaussian_in_mask_matrix, dtype=np.float32)  # shape: [N_pts, N_masks]
     B = csr_matrix(gaussian_in_frame_matrix, dtype=np.float32)  # shape: [N_pts, N_frames]
 
-    intersection_counts = A.T @ B  # still sparse->交集
+    intersection_counts = A.T @ B
 
-    mask_point_counts = np.array(A.sum(axis=0)).ravel() + 1e-6  # 防止除以0
+    mask_point_counts = np.array(A.sum(axis=0)).ravel() + 1e-6
 
     intersection_counts = intersection_counts.tocoo()
     visible_mask = (intersection_counts.data / mask_point_counts[intersection_counts.row]) > threshold
@@ -123,7 +107,7 @@ def construct_mask2gs_tracker(gaussian: GaussianModel, viewcams: List[Camera], c
         else:
             mask_dict, frame_gaussian_ids = get_segmap_gaussians(gaussian, view)
 
-        gaussian_in_frame_matrix[frame_gaussian_ids, frame_cnt] = True  # gs在frame可见
+        gaussian_in_frame_matrix[frame_gaussian_ids, frame_cnt] = True
 
         for mask_id, mask_point_cloud_ids in mask_dict.items():
             mask_gaussian_pclds[f'{frame_cnt}_{mask_id}'] = mask_point_cloud_ids
@@ -141,7 +125,6 @@ def construct_mask2gs_tracker(gaussian: GaussianModel, viewcams: List[Camera], c
     contained_masks = []  # each mask contained mask id
     undersegment_mask_ids = []
 
-    # 计算各个Mask的visible frames
     mask_visible_frames = compute_mask_visible_frame(global_gaussian_in_mask_matrix, gaussian_in_frame_matrix)
     mask_cnts = 0
     iterator = tqdm(global_frame_mask_list, total=len(global_frame_mask_list), desc="Filtering Undersegment Masks")
@@ -172,11 +155,11 @@ def construct_mask2gs_tracker(gaussian: GaussianModel, viewcams: List[Camera], c
         contained_masks[:, global_mask_id] = False  # 排除掉该mask的影响
         visible_frames[mask_projected_idx, global_frame_id] = False
 
-    ## Use Maskclustering to cluster the masks
+    ## Following Maskclustering to cluster the masks
     contained_masks = torch.from_numpy(contained_masks).float().cuda()
     visible_frames = torch.from_numpy(visible_frames).float().cuda()
 
-    observer_num_thresholds = get_observer_num_thresholds(visible_frames)  # nk的阈值
+    observer_num_thresholds = get_observer_num_thresholds(visible_frames)
     nodes = init_nodes(global_frame_mask_list, visible_frames, contained_masks, undersegment_mask_ids,
                        mask_gaussian_pclds)
 
@@ -210,7 +193,7 @@ def judge_single_mask(gaussian_in_mask_matrix,
     visible_frame = np.zeros(len(viewcams), dtype=bool)
     contained_mask = np.zeros(len(global_frame_mask_list), dtype=bool)
 
-    mask_gaussians_info = gaussian_in_mask_matrix[list(mask_gaussian_pcld), :]  # 每个点在各个frame mask中的idx
+    mask_gaussians_info = gaussian_in_mask_matrix[list(mask_gaussian_pcld), :]
 
     split_num = 0  # frame number of undersegment
     visible_num = 0  # frame number of visible
@@ -255,7 +238,7 @@ def get_observer_num_thresholds(visible_frames):
     '''
         Compute the observer number thresholds for each iteration. Range from 95% to 0%.
     '''
-    observer_num_matrix = torch.matmul(visible_frames, visible_frames.transpose(0, 1))  # 各个mask之间都可见的frame数量
+    observer_num_matrix = torch.matmul(visible_frames, visible_frames.transpose(0, 1))
     observer_num_list = observer_num_matrix.flatten()
     observer_num_list = observer_num_list[observer_num_list > 0].cpu().numpy()
     observer_num_thresholds = []

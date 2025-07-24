@@ -15,7 +15,7 @@ from spatial_track.modules.post_process import post_process
 
 ### Refer from https://github.com/PKU-EPIC/MaskClustering with Gaussian-based Tracker ###
 class GausCluster:
-    def __init__(self, gaussian: GaussianModel, viewcams: List[Camera], debug=True):
+    def __init__(self, gaussian: GaussianModel, viewcams: List[Camera], debug=False):
         # 构建init node
         self.gaussian = gaussian
         self.viewcams = viewcams
@@ -44,7 +44,7 @@ class GausCluster:
 
         self.export(final_mask_assocation, save_dir=save_dir)
 
-    def export(self, mask_assocation, save_dir, export_vis=True):
+    def export(self, mask_assocation, save_dir):
         # undersegment, mask3d, mv-consist masks
         os.makedirs(save_dir, exist_ok=True)
 
@@ -73,29 +73,6 @@ class GausCluster:
 
         np.save(os.path.join(save_dir, 'output_dict.npy'), output_dict, allow_pickle=True)
 
-        if export_vis:
-            import open3d as o3d
-            from vis_utils.color_utils import generate_semantic_colors
-            scene_points = self.gaussian.get_xyz.cpu().numpy()
-            pcld_colors = generate_semantic_colors(mask_3d_labels.shape[1], normalize=True)
-
-            color_pts = None
-            for i in range(mask_3d_labels.shape[1]):
-                curr_mask = mask_3d_labels[:, i]
-                if curr_mask.sum() == 0 or curr_mask.sum() < 10:
-                    continue
-                point_ids = np.where(curr_mask)[0]
-
-                points = scene_points[point_ids]
-                instance_pts = o3d.geometry.PointCloud()
-                instance_pts.points = o3d.utility.Vector3dVector(points)
-                instance_pts.paint_uniform_color(pcld_colors[i])
-
-                color_pts = color_pts + instance_pts if color_pts is not None else instance_pts
-
-            # o3d.visualization.draw_geometries([color_pts])
-            o3d.io.write_point_cloud(os.path.join(save_dir, 'segment.ply'), color_pts)
-
     def rearrange_mask(self, mask_folder, mask_assocation_info):
         save_dir = os.path.join(os.path.dirname(mask_folder), "mask_sorted")
         os.makedirs(save_dir, exist_ok=True)
@@ -109,10 +86,10 @@ class GausCluster:
         masks_new = np.zeros_like(masks_origin, dtype=np.int16)
 
         for cluster_id, cluster_info in enumerate(mask_assocation_info):
-            cluster_id = cluster_id + 1  # 从1开始
+            cluster_id = cluster_id + 1  # indice from 1
             for frame_mask_id in cluster_info:
                 frame_id, mask_id = frame_mask_id[:2]
-                masks_new[frame_id][masks_origin[frame_id] == mask_id] = cluster_id  # 更新为instance
+                masks_new[frame_id][masks_origin[frame_id] == mask_id] = cluster_id
 
         for mask_id in range(len(masks_origin)):
             save_path = os.path.join(save_dir, self.viewcams[mask_id].image_name + ".png")
