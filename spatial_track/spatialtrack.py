@@ -46,7 +46,7 @@ class GausCluster:
         ## Remedy error-classified undersegment masks
         remedy_mask_assocation = remedy_undersegment(self.gaussian, self.viewcams, final_mask_assocation)
 
-        self.export(final_mask_assocation, save_dir=save_dir)
+        self.export(remedy_mask_assocation, save_dir=save_dir)
 
     def export(self, mask_assocation, save_dir):
         # undersegment, mask3d, mv-consist masks
