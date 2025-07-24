@@ -304,7 +304,7 @@ class GaussianSplattingGUI:
             self.known_camera_mode = ~self.known_camera_mode
 
         # control window
-        with dpg.window(label="Control", tag="_control_window", width=400, height=400, pos=[self.width + 10, 0]):
+        with dpg.window(label="Control", tag="_control_window", width=400, height=500, pos=[self.width + 10, 0]):
             dpg.add_text("Mouse position: click anywhere to start.", tag="pos_item")
             dpg.add_spacing(count=2)
 
