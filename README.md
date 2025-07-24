@@ -143,7 +143,7 @@ python semantic_gui.py \
 - `Segment 3D` for only keep the chosen gaussians
 - `Reload Data` for reload the gaussian model
 
-https://github.com/user-attachments/assets/7cbf5388-4184-4dc6-b1bd-af4a7edaeb15
+https://github.com/user-attachments/assets/e99dc104-4233-4808-8b51-a9fc5f60418f
 
 https://github.com/user-attachments/assets/aca0ae53-744e-4037-99b2-197917953303
 
