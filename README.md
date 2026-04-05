@@ -170,9 +170,10 @@ If you find this code useful for your research, please use the following BibTeX 
 
 ```
 @inproceedings{yang2025instascene,
-    title={InstaScene: Towards Complete 3D Instance Decomposition and Reconstruction from Cluttered Scenes},
-    author={Yang, Zesong and Yang, Bangbang and Dong, Wenqi and Cao, Chenxuan and Cui, Liyuan and Ma, Yuewen and Cui, Zhaopeng and Bao, Hujun},
-    booktitle=ICCV,
-    year={2025}
+  title={Instascene: Towards complete 3d instance decomposition and reconstruction from cluttered scenes},
+  author={Yang, Zesong and Yang, Bangbang and Dong, Wenqi and Cao, Chenxuan and Cui, Liyuan and Ma, Yuewen and Cui, Zhaopeng and Bao, Hujun},
+  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
+  pages={7771--7781},
+  year={2025}
 }
 ```
